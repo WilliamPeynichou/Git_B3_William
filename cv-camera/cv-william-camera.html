@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WANTED · William Peynichou · Data &amp; IA</title>
+<style>
+  :root{
+    --basil:#86a38b;        /* Pantone 16-6216 Basil */
+    --basil-d:#5f7d66;
+    --soil:#4a3326;         /* Pantone 19-1015 Potting Soil */
+    --soil-d:#2b1d15;
+    --tomato:#ff2a14;       /* Cherry Tomato, poussé en intensité */
+    --tomato-glow:rgba(255,42,20,.9);
+    --paper:#efe8d8;
+    --ink:#080806;
+    --display:Impact,'Haettenschweiler','Arial Narrow Bold','Arial Black',sans-serif;
+    --mono:'Courier New',ui-monospace,monospace;
+    --sans:Helvetica,Arial,sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--basil);
+    font-family:var(--sans);color:var(--soil-d);
+    padding:40px 0 60px;
+  }
+
+  /* ===== SHADERS NOIRS (overlays plein écran) ===== */
+  .fx{position:fixed;inset:0;pointer-events:none}
+  .vignette{z-index:50;
+    background:
+      radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,.55) 80%, rgba(0,0,0,.92) 100%)}
+  .scan{z-index:51;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,.28) 0 1px, transparent 1px 3px);
+    mix-blend-mode:multiply}
+  .grain{z-index:52;inset:-60%;opacity:.28;mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1.4 -0.2'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+  .grain.light{z-index:53;opacity:.16;mix-blend-mode:screen;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1.2 -.55'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+  /* ===== POSTER ===== */
+  .poster{
+    position:relative;max-width:1120px;margin:0 auto;padding:40px 44px 50px;
+    background:var(--paper);
+    border:2px solid var(--soil-d);
+    box-shadow:0 0 0 10px rgba(8,8,6,.35), 0 40px 90px rgba(0,0,0,.65);
+  }
+  .poster::after{ /* texture papier */
+    content:"";position:absolute;inset:0;pointer-events:none;opacity:.12;mix-blend-mode:multiply;
+    background:radial-gradient(circle at 20% 10%, #000 0, transparent 60%)}
+
+  /* titre massif rouge */
+  .big{font-family:var(--display);color:var(--tomato);text-transform:uppercase;line-height:.86;
+    letter-spacing:.005em;text-shadow:0 0 22px rgba(255,42,20,.45), 0 0 2px var(--tomato)}
+  h1.big{font-size:clamp(64px,13.2vw,168px);display:block;white-space:nowrap}
+  .h1-sub{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;
+    border-top:4px solid var(--tomato);margin-top:10px;padding-top:8px;
+    font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--soil)}
+
+  /* bounding boxes annotées */
+  .bb{position:relative;border:2px solid var(--tomato);padding:26px 22px 20px;background:rgba(255,255,255,.35)}
+  .bb::before,.bb::after,.bb > .h::before,.bb > .h::after{
+    content:"";position:absolute;width:11px;height:11px;background:var(--paper);border:2px solid var(--tomato)}
+  .bb::before{top:-7px;left:-7px}.bb::after{top:-7px;right:-7px}
+  .bb > .h{position:absolute;inset:0;pointer-events:none}
+  .bb > .h::before{bottom:-7px;left:-7px}.bb > .h::after{bottom:-7px;right:-7px}
+  .tag{position:absolute;top:-15px;left:20px;z-index:2;
+    font-family:var(--display);font-size:20px;letter-spacing:.06em;text-transform:uppercase;
+    background:var(--tomato);color:#fff;padding:2px 14px 1px;
+    box-shadow:0 0 18px var(--tomato-glow);border:2px solid var(--tomato)}
+  .tag.dark{background:var(--soil-d);border-color:var(--soil-d);box-shadow:none}
+  .tag.out{background:var(--paper);color:var(--tomato)}
+
+  /* mise en page principale : 5/7 */
+  .hero{display:grid;grid-template-columns:5fr 7fr;gap:46px;margin-top:34px;align-items:start}
+  .side{position:relative;display:flex;flex-direction:column;gap:30px}
+  .vert{position:absolute;left:-30px;top:0;writing-mode:vertical-rl;transform:rotate(180deg);
+    font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--soil)}
+
+  .portrait{position:relative;aspect-ratio:4/5;background:
+      linear-gradient(135deg,var(--soil-d),var(--basil-d));
+    border:2px solid var(--tomato);display:grid;place-items:center;overflow:hidden}
+  .portrait::before{content:"";position:absolute;inset:0;
+    background:
+      repeating-linear-gradient(90deg,rgba(255,42,20,.18) 0 1px,transparent 1px 36px),
+      repeating-linear-gradient(0deg,rgba(255,42,20,.18) 0 1px,transparent 1px 36px)}
+  .portrait .wp{font-family:var(--display);font-size:150px;color:var(--tomato);
+    text-shadow:0 0 30px var(--tomato-glow);position:relative;line-height:1}
+  .portrait .coord{z-index:5;text-shadow:0 0 4px #000;position:absolute;font-family:var(--mono);font-size:10px;color:var(--basil);letter-spacing:.1em}
+  .portrait .c1{top:8px;left:10px}.portrait .c2{bottom:8px;right:10px}
+  .portrait .cross{position:absolute;inset:0;
+    background:
+      linear-gradient(var(--tomato),var(--tomato)) 50% 0/1px 100% no-repeat,
+      linear-gradient(var(--tomato),var(--tomato)) 0 50%/100% 1px no-repeat;opacity:.65}
+
+
+  .portrait img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 30%;filter:grayscale(.3) contrast(1.1)}
+  .det{position:absolute;border:2px solid var(--tomato);z-index:3}
+  .det::before,.det::after{content:"";position:absolute;width:9px;height:9px;background:var(--paper);border:2px solid var(--tomato)}
+  .det::before{top:-6px;left:-6px}.det::after{bottom:-6px;right:-6px}
+  .det span{position:absolute;top:-22px;left:-2px;background:var(--tomato);color:#fff;font-family:var(--mono);
+    font-size:10px;letter-spacing:.1em;padding:2px 6px;white-space:nowrap;text-transform:uppercase}
+  .det.face{left:14%;top:20%;width:70%;height:64%}
+  .det.body{left:3%;top:3%;width:94%;height:94%;border-style:dashed;opacity:.85}
+  .callout{position:absolute;z-index:4;background:var(--paper);border:2px solid var(--tomato);padding:5px 8px;
+    font-family:var(--display);font-size:15px;letter-spacing:.05em;color:var(--tomato);text-transform:uppercase;line-height:1}
+  .callout i{display:block;font-style:normal;font-family:var(--mono);font-size:9px;color:var(--soil);letter-spacing:.1em;margin-top:3px}
+  .callout.c-a{right:-8px;top:70%;transform:rotate(3deg)}
+  .callout.c-b{left:-8px;top:12%;transform:rotate(-4deg)}
+  .lineh{position:absolute;z-index:3;height:2px;background:var(--tomato);box-shadow:0 0 8px var(--tomato-glow)}
+  .lineh.la{left:70%;top:calc(70% + 14px);width:12%}
+  .lineh.lb{left:25%;top:calc(12% + 14px);width:14%}
+  .contact li{list-style:none;font-family:var(--mono);font-size:12.5px;line-height:1.9;color:var(--soil-d);
+    border-bottom:1px dashed rgba(74,51,38,.45)}
+  .contact li b{color:var(--tomato);letter-spacing:.14em;margin-right:8px;font-weight:bold}
+
+  .main{display:flex;flex-direction:column;gap:38px}
+  .profil p{font-size:15px;line-height:1.7;color:var(--soil-d)}
+  .profil p b{background:var(--tomato);color:#fff;padding:0 5px}
+
+  /* lignes de liaison rouges */
+  .link-line{height:34px;border-left:2px solid var(--tomato);margin-left:60px;position:relative}
+  .link-line::after{content:"";position:absolute;bottom:-4px;left:-6px;width:10px;height:10px;background:var(--tomato);border-radius:50%;box-shadow:0 0 10px var(--tomato-glow)}
+
+  section.blk{margin-top:54px;position:relative}
+  .sec-title{display:flex;align-items:flex-end;gap:16px;margin-bottom:26px}
+  .sec-title .big{font-size:clamp(44px,7vw,92px)}
+  .sec-title .no{font-family:var(--mono);font-size:12px;letter-spacing:.2em;color:var(--soil);
+    border:1px solid var(--soil);padding:3px 8px;margin-bottom:10px}
+  .sec-title .rule{flex:1;height:4px;background:var(--tomato);margin-bottom:12px;box-shadow:0 0 12px var(--tomato-glow)}
+
+  /* compétences */
+  .skills{display:grid;grid-template-columns:repeat(3,1fr);gap:30px 22px}
+  .skills .bb{padding:24px 16px 14px}
+  .skills .bb h4{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--tomato);margin-bottom:6px}
+  .skills .bb p{font-size:13px;line-height:1.55}
+
+  /* expérience : bloc Potting Soil */
+  .exp{background:var(--soil);color:var(--paper);padding:34px 34px 28px;position:relative;border:2px solid var(--soil-d)}
+  .exp + .exp{margin-top:34px}
+  .exp .tag{top:-16px}
+  .exp h3{font-family:var(--display);font-size:32px;color:var(--tomato);text-transform:uppercase;letter-spacing:.02em;
+    text-shadow:0 0 16px rgba(255,42,20,.5);line-height:1.05}
+  .exp .meta{font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--basil);margin:6px 0 14px}
+  .exp ul{list-style:none}
+  .exp li{font-size:14px;line-height:1.6;padding-left:18px;position:relative;margin-bottom:5px}
+  .exp li::before{content:"";position:absolute;left:0;top:9px;width:8px;height:8px;background:var(--tomato);box-shadow:0 0 8px var(--tomato-glow)}
+
+  /* projets 2x2 type planches */
+  .projects{display:grid;grid-template-columns:1fr 1fr;gap:36px 28px}
+  .proj{position:relative;background:var(--paper);border:2px solid var(--soil-d);padding:26px 20px 18px}
+  .proj .idx{position:absolute;top:-1px;right:-1px;background:var(--soil-d);color:var(--basil);
+    font-family:var(--mono);font-size:11px;padding:3px 9px;letter-spacing:.14em}
+  .proj h3{font-family:var(--display);font-size:42px;color:var(--tomato);text-transform:uppercase;line-height:1;
+    text-shadow:0 0 14px rgba(255,42,20,.45)}
+  .proj .url{display:block;font-family:var(--mono);font-size:10.5px;color:var(--basil-d);margin:6px 0 10px;letter-spacing:.05em;font-weight:bold}
+  .proj p{font-size:13px;line-height:1.55}
+  .proj .hatch{height:12px;margin-top:14px;
+    background:repeating-linear-gradient(90deg,var(--tomato) 0 6px,transparent 6px 10px,var(--basil) 10px 14px,transparent 14px 20px)}
+
+  /* formation : damier rouge/brun */
+  .edu{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:2px solid var(--soil-d)}
+  .edu > div{padding:26px 20px 20px;position:relative;border-right:2px solid var(--soil-d)}
+  .edu > div:last-child{border-right:0}
+  .edu > div:nth-child(1){background:var(--tomato);color:#fff}
+  .edu > div:nth-child(2){background:var(--soil);color:var(--paper)}
+  .edu > div:nth-child(3){background:var(--basil);color:var(--soil-d)}
+  .edu b{font-family:var(--display);font-size:25px;text-transform:uppercase;line-height:1.1;display:block;letter-spacing:.02em}
+  .edu span{display:block;margin-top:8px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+  .checker{height:34px;margin-top:-2px;border:2px solid var(--soil-d);border-top:0;
+    background:
+      repeating-conic-gradient(var(--tomato) 0 25%, var(--basil) 0 50%) 0 0/34px 34px}
+
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:38px;margin-top:54px}
+  .cert{display:inline-block;font-family:var(--display);font-size:26px;text-transform:uppercase;color:var(--tomato);
+    letter-spacing:.04em;text-shadow:0 0 14px rgba(255,42,20,.5)}
+  .cert small{display:block;font-family:var(--mono);font-size:11px;color:var(--soil);letter-spacing:.16em;margin-top:4px}
+  .extra p{font-size:13.5px;line-height:1.75}
+  .extra b{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--tomato)}
+
+  .foot{margin-top:50px;border-top:4px solid var(--tomato);padding-top:12px;display:flex;justify-content:space-between;
+    align-items:center;font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--soil)}
+  .barcode{height:30px;width:120px;
+    background:repeating-linear-gradient(90deg,var(--soil-d) 0 2px,transparent 2px 4px,var(--soil-d) 4px 5px,transparent 5px 9px,var(--soil-d) 9px 12px,transparent 12px 14px)}
+
+
+  /* ===== mise en page chaotique ===== */
+  h1.big{transform:rotate(-1.6deg);transform-origin:left bottom;margin-left:-8px}
+  .h1-sub{transform:rotate(.6deg);margin-top:16px}
+  .hero{margin-top:48px;gap:30px}
+  .side .bb:nth-of-type(1){transform:rotate(-2.6deg) translateX(-14px)}
+  .side .bb:nth-of-type(2){transform:rotate(2deg) translate(18px,-16px);z-index:2;background:var(--paper)}
+  .main .profil{transform:rotate(.9deg) translateX(-26px);margin-top:20px;z-index:2}
+  .main .link-line{margin-left:140px;transform:rotate(14deg)}
+  .main .bb:last-child{transform:rotate(-1.2deg) translateX(26px)}
+  .tag{transform:rotate(-2deg)}
+  .bb:nth-of-type(even) > .tag{transform:rotate(1.8deg)}
+  .sec-title:nth-of-type(odd){margin-left:-14px}
+  section.blk:nth-of-type(2) .sec-title{flex-direction:row-reverse;transform:rotate(1.3deg)}
+  section.blk:nth-of-type(1) .sec-title{transform:rotate(-1.2deg)}
+  section.blk:nth-of-type(3) .sec-title{transform:rotate(.8deg);margin-left:60px}
+  .exp.cur{transform:rotate(-1.1deg) translateX(-20px);width:88%;z-index:3;box-shadow:10px 12px 0 var(--tomato)}
+  .exp.prev{transform:rotate(.9deg) translate(34px,-14px);width:92%;margin-left:auto}
+  .exp.old{transform:rotate(-1.6deg) translateX(10px);width:70%;margin-top:26px}
+  .projects{gap:20px 14px}
+  .proj:nth-child(1){transform:rotate(-2.4deg)}
+  .proj:nth-child(2){transform:rotate(1.8deg) translateY(30px)}
+  .proj:nth-child(3){transform:rotate(1.2deg) translate(-14px,-4px)}
+  .proj:nth-child(4){transform:rotate(-1.9deg) translate(10px,22px)}
+  .proj h3{font-size:clamp(36px,5vw,58px)}
+  .edu{transform:rotate(-.9deg)}
+  .checker{transform:rotate(-.9deg)}
+  .row2 .bb:nth-child(1){transform:rotate(2.2deg)}
+  .row2 .bb:nth-child(2){transform:rotate(-1.4deg) translateY(14px)}
+  .foot{transform:rotate(.5deg)}
+  .poster::before{content:"N°001 / PRIORITAIRE";position:absolute;top:18px;right:-22px;transform:rotate(7deg);
+    background:var(--tomato);color:#fff;font-family:var(--display);font-size:20px;letter-spacing:.08em;
+    padding:4px 16px;box-shadow:0 0 22px var(--tomato-glow);z-index:5}
+  @media (max-width:860px){
+    body{padding:20px 10px 40px}
+    .poster{padding:26px 18px 34px}
+    .hero,.row2,.projects,.skills,.edu{grid-template-columns:1fr}
+    .edu > div{border-right:0;border-bottom:2px solid var(--soil-d)}
+    .vert{display:none}
+    .poster *{transform:none !important;width:auto !important}
+    .poster::before{display:none}
+    h1.big{white-space:normal}
+  }
+  @media print{
+    .poster *{transform:none !important}
+    .fx{display:none}
+    body{background:#fff;padding:0}
+    .poster{box-shadow:none;border:0}
+  }
+</style>
+</head>
+<body>
+
+<!-- shaders noirs -->
+<div class="fx vignette"></div>
+<div class="fx scan"></div>
+<div class="fx grain"></div>
+<div class="fx grain light"></div>
+
+
+<main class="poster">
+
+  <h1 class="big">Peynichou</h1>
+  <div class="h1-sub">
+    <span>William · Développeur Full Stack &amp; Intégrateur IA</span>
+    <span>Apprenti Data Science · Caisse d'Epargne · Bordeaux</span>
+  </div>
+
+  <div class="hero">
+    <aside class="side">
+      <div class="vert">Recherché pour dépassement de performance · Data &amp; Intelligence Artificielle</div>
+
+      <div class="bb" style="padding:0">
+        <span class="tag">Target</span>
+        <div class="portrait">
+          <div class="cross"></div>
+          <span class="wp">WP</span>
+          <img src="photo-william.jpg" alt="William Peynichou" onerror="this.remove()">
+          <div class="det body"><span>Candidat · 0.99</span></div>
+          <div class="det face"><span>Target · 0.98</span></div>
+          <div class="lineh la"></div><div class="callout c-a">Data &amp; IA<i>CAISSE D'EPARGNE</i></div>
+          <div class="lineh lb"></div><div class="callout c-b">Full Stack<i>16 MOIS · AGILE</i></div>
+          <span class="coord c1">N 44.84° / W 0.58°</span>
+          <span class="coord c2">ID · WPE-DATA-IA</span>
+        </div>
+        <div class="h"></div>
+      </div>
+
+      <div class="bb">
+        <span class="tag dark">Contact</span>
+        <ul class="contact">
+          <li><b>TEL</b>06 59 25 72 40</li>
+          <li><b>MAIL</b>williampeynichou@gmail.com</li>
+          <li><b>LOC</b>Bordeaux / Mérignac</li>
+          <li><b>WEB</b>williampeynichou.fr</li>
+          <li><b>WEB</b>trouvetaboite.com</li>
+          <li><b>GIT</b>github.com/WilliamPeynichou</li>
+          <li><b>PERMIS</b>A / B</li>
+          <li><b>LANG</b>Bilingue anglais</li>
+        </ul>
+        <div class="h"></div>
+      </div>
+    </aside>
+
+    <div class="main">
+      <div class="bb profil">
+        <span class="tag">Profil</span>
+        <p>Développeur full stack et <b>intégrateur IA</b>, 16 mois d'expérience en entreprise (L'Atelier, Bordeaux).
+        Lead technique sur deux projets clients en méthode Agile. Expérience concrète en <b>architecture RAG</b>,
+        bases de données vectorielles et intégration d'IA générative. Maîtrise de Python, JavaScript, SQL/NoSQL et des
+        architectures data. Double compétence technique et analytique (marketing, psychologie, UX). Créateur de plusieurs
+        projets open source en Data &amp; IA. Aujourd'hui en <b>apprentissage Data Science à la Caisse d'Epargne</b>, dans le cadre d'un Master Data &amp; IA.</p>
+        <div class="h"></div>
+      </div>
+
+      <div class="link-line"></div>
+
+      <div class="bb">
+        <span class="tag out">Stack</span>
+        <div class="skills" style="margin-top:6px">
+          <div><h4>Data &amp; IA</h4><p>Architecture RAG, bases vectorielles (pgvector), LangGraph, prompt engineering, ETL</p></div>
+          <div><h4>BI &amp; Analyse</h4><p>PowerBI, DAX, SQL/NoSQL, requêtes avancées, agrégations, datavisualisation</p></div>
+          <div><h4>Langages</h4><p>Python, JavaScript (ES6+), TypeScript, PHP, SQL</p></div>
+          <div><h4>Frameworks</h4><p>React, Next.js, Node.js/Express, Symfony, Vue.js, Angular</p></div>
+          <div><h4>Bases de données</h4><p>PostgreSQL, MySQL, MongoDB, pgvector</p></div>
+          <div><h4>IA &amp; DevOps</h4><p>Cursor, Claude Code, Claude API, Git/GitHub, Docker, CI/CD, no-code</p></div>
+        </div>
+        <p style="margin-top:16px;font-family:var(--mono);font-size:12px;letter-spacing:.1em"><b style="color:var(--tomato)">MÉTHODES ▸</b> API REST, Clean Architecture, Agile/Scrum, documentation technique</p>
+        <div class="h"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXPÉRIENCE -->
+  <section class="blk">
+    <div class="sec-title"><h2 class="big">Expérience</h2><span class="rule"></span><span class="no">01</span></div>
+
+    <div class="exp cur">
+      <span class="tag">Aujourd'hui</span>
+      <h3>Apprenti Data Science, Caisse d'Epargne</h3>
+      <div class="meta">Aujourd'hui · Apprentissage · Master Data &amp; IA</div>
+      <ul>
+        <li>Apprentissage en Data Science à la Caisse d'Epargne en parallèle du Master Data &amp; Intelligence Artificielle</li>
+      </ul>
+    </div>
+
+    <div class="exp prev">
+      <span class="tag dark">Précédent</span>
+      <h3>Développeur Full Stack Junior &amp; Intégrateur IA, L'Atelier</h3>
+      <div class="meta">Depuis sept. 2024 · Bordeaux</div>
+      <ul>
+        <li>Recherche et développement sur l'IA : veille, intégration et optimisation des outils d'IA dans les processus de développement de l'entreprise</li>
+        <li>Lead technique sur <b>MarsAI</b> : plateforme full stack de festival de films (soumission, jury, modération admin, CMS dynamique, événements). Pilotage, coordination d'équipe et livraison en Agile</li>
+        <li>Stack MarsAI : Node.js/Express, MySQL, React, stockage objet S3 (Scaleway), traitement vidéo, JWT</li>
+        <li>Développement front (React) et back (PHP/Symfony), conception d'API REST</li>
+        <li>Correction de bugs, tests, maintenance applicative, collecte de données et documentation technique</li>
+      </ul>
+    </div>
+
+    <div class="exp old" style="background:var(--basil-d)">
+      <span class="tag dark">2021 à 2022</span>
+      <h3>Assistant Marketing, La Parqueterie</h3>
+      <div class="meta" style="color:var(--paper)">2021 à 2022 · Mérignac</div>
+      <ul><li>Analyse de données clients, reporting, suivi des KPI et gestion des outils web</li></ul>
+    </div>
+  </section>
+
+  <!-- PROJETS -->
+  <section class="blk">
+    <div class="sec-title"><h2 class="big">Projets</h2><span class="rule"></span><span class="no">02</span></div>
+    <div class="projects">
+      <article class="proj">
+        <span class="idx">FIG.01</span>
+        <h3>Fiscalia</h3><span class="url">github.com/WilliamPeynichou/fiscalia</span>
+        <p>Agent IA spécialisé en fiscalité française. Pipeline RAG sur PostgreSQL + pgvector : ingestion, indexation et recherche sémantique de données juridiques. App web Next.js avec authentification OAuth et mode agent autonome via manifest JSON.</p>
+        <div class="hatch"></div>
+      </article>
+      <article class="proj">
+        <span class="idx">FIG.02</span>
+        <h3>At-ifit</h3><span class="url">github.com/WilliamPeynichou/At-ifit</span>
+        <p>Application d'analyse de données sportives. Intégration de l'API Strava, corrélation activité/poids, calcul du TDEE (Mifflin-St Jeor) et coach IA. Datavisualisation avec Recharts (React, Node.js/Express, MySQL/Sequelize).</p>
+        <div class="hatch"></div>
+      </article>
+      <article class="proj">
+        <span class="idx">FIG.03</span>
+        <h3>ClaakeCode</h3><span class="url">github.com/WilliamPeynichou/ClaakeCode</span>
+        <p>IDE desktop avec agents IA. Harnais de coding agentique éditable : multi-fournisseurs, essaim d'agents et task board partagé. Application desktop construite en Tauri, Rust et React.</p>
+        <div class="hatch"></div>
+      </article>
+      <article class="proj">
+        <span class="idx">FIG.04</span>
+        <h3>Commis</h3><span class="url">trouvetaboite.com · 1 000 utilisateurs/mois</span>
+        <p>Agent IA de génération de recettes. Architecture RAG complète : API Claude (Anthropic), base vectorielle, pipeline de traitement de données, front React. Également créateur de trouvetaboite.com (Next.js, PostgreSQL).</p>
+        <div class="hatch"></div>
+      </article>
+    </div>
+  </section>
+
+  <!-- FORMATION -->
+  <section class="blk">
+    <div class="sec-title"><h2 class="big">Formation</h2><span class="rule"></span><span class="no">03</span></div>
+    <div class="edu">
+      <div><b>Master Data &amp; Intelligence Artificielle</b><span>2026 à 2028/2029 · À venir</span></div>
+      <div><b>Diplôme Développeur Web, La Plateforme</b><span>2023 à 2024 · Bordeaux</span></div>
+      <div><b>Licence Marketing Commercial, ISCOD</b><span>2021 à 2022 · Bordeaux</span></div>
+    </div>
+    <div class="checker"></div>
+  </section>
+
+  <div class="row2">
+    <div class="bb">
+      <span class="tag">Certification</span>
+      <span class="cert">Claude Architect<small>ANTHROPIC · 2025</small></span>
+      <div class="h"></div>
+    </div>
+    <div class="bb extra">
+      <span class="tag dark">Infos</span>
+      <p><b>Langues ▸</b> Français (natif), Anglais (bilingue)</p>
+      <p><b>Sécurité SI ▸</b> Sensibilisé aux enjeux PSSI</p>
+      <p><b>Intérêts ▸</b> IA et data science, football, cyclisme, alpinisme, ski freeride, photographie</p>
+      <div class="h"></div>
+    </div>
+  </div>
+
+  <footer class="foot">
+    <span>WPE · Data &amp; IA</span>
+    <div class="barcode"></div>
+    <span>Apprenti Data Science</span>
+  </footer>
+</main>
+
+</body>
+</html>
